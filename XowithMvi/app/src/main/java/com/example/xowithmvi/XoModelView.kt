@@ -1,8 +1,11 @@
 package com.example.xowithmvi
 
-import androidx.lifecycle.ViewModel
+ import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
 
 class XoModelView : ViewModel() {
     private val _state = MutableStateFlow(XoState())
@@ -19,7 +22,7 @@ class XoModelView : ViewModel() {
         val count: Int = _state.value.counter
         if (
             _state.value.Xlist.contains(number) || _state.value.Olist.contains(number))
-         return
+            return
         val updatedList = _state.value.list.toMutableList()
         if (count % 2 == 0 && count <= 8) {
             updatedList[number - 1] = "X"
@@ -37,13 +40,13 @@ class XoModelView : ViewModel() {
                 counter = count + 1
             )
         }
-        if (count > 8){
-          _state.value=_state.value.copy(
-              counter = 0,
-              Xlist = listOf<Int>(),
-              Olist = listOf<Int>(),
-              list = listOf("", "", "", "", "", "", "", "", "")
-          )
+        if (count > 8) {
+            _state.value = _state.value.copy(
+                counter = 0,
+                Xlist = listOf<Int>(),
+                Olist = listOf<Int>(),
+                list = listOf("", "", "", "", "", "", "", "", "")
+            )
         }
         calculateScore()
 
@@ -87,26 +90,39 @@ class XoModelView : ViewModel() {
         }
 
         if (winnerX) {
-            _state.value = _state.value.copy(
-                score1 = _state.value.score1 + 1,
-                counter = 0,
-                Xlist = listOf<Int>(),
-                Olist = listOf<Int>(),
-                list = listOf("", "", "", "", "", "", "", "", "")
-            )
+            viewModelScope.launch {
+                waitingX()
+            }
         } else if (winnerO) {
-            _state.value = _state.value.copy(
-                counter = 0,
-                score2 = _state.value.score2 + 1,
-                Xlist = listOf<Int>(),
-                Olist = listOf<Int>(),
-                list = listOf("", "", "", "", "", "", "", "", "")
-            )
 
+            viewModelScope.launch {
+                waitingO()
+            }
         }
-
-
-
     }
+
+    suspend fun waitingX() {
+        delay(500)
+        _state.value = _state.value.copy(
+            score1 = _state.value.score1 + 1,
+            counter = 0,
+            Xlist = listOf<Int>(),
+            Olist = listOf<Int>(),
+            list = listOf("", "", "", "", "", "", "", "", "")
+        )
+    }
+
+    suspend fun waitingO() {
+        delay(500)
+        _state.value = _state.value.copy(
+            counter = 0,
+            score2 = _state.value.score2 + 1,
+            Xlist = listOf<Int>(),
+            Olist = listOf<Int>(),
+            list = listOf("", "", "", "", "", "", "", "", "")
+        )
+    }
+
+
 }
 
